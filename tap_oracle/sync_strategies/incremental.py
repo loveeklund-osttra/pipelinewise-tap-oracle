@@ -76,7 +76,7 @@ def sync_table(conn_config, stream, state, desired_columns):
          LOGGER.info(f"Resuming Incremental replication from {replication_key} = {replication_key_value} + {typed_offset_value}")
 
          if custom_query_file:
-             select_sql = common.format_query_file(custom_query_file=custom_query_file,
+             select_sql = common.format_query_file(query_file=custom_query_file,
                                                    escaped_columns=escaped_columns,
                                                    escaped_schema=escaped_schema,
                                                    escaped_table=escaped_table,

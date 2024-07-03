@@ -134,7 +134,7 @@ def sync_table(conn_config, stream, state, desired_columns):
          # Warning there is not restart recovery if the ORA_ROWSCN is ignored.
          custom_query_file = md.get(()).get("custom_query_file")
          if custom_query_file:
-             select_sql = common.format_query_file(custom_query_file=custom_query_file,
+             select_sql = common.format_query_file(query_file=custom_query_file,
                                                    escaped_columns=escaped_columns,
                                                    escaped_schema=escaped_schema,
                                                    escaped_table=escaped_table,
