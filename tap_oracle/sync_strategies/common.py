@@ -109,7 +109,8 @@ def format_query_file(query_file: str,
                       escaped_columns: map,
                       escaped_schema: str,
                       escaped_table: str,
-                      replication_key_value: str = None
+                      replication_key_value: str = None,
+                      replication_key_datatype: str = None
                       ) -> str:
     full_query_file = os.path.join("custom_queries", query_file)
     with open(full_query_file, 'r') as f:
@@ -119,7 +120,7 @@ def format_query_file(query_file: str,
     input_dict = {"escaped_columns": ",".join(escaped_columns),
                   "escaped_schema": escaped_schema,
                   "escaped_table": escaped_table,
-                  "replication_key_value": prepare_where_clause_arg(replication_key_value) if replication_key_value else "NULL"
+                  "replication_key_value": prepare_where_clause_arg(replication_key_value, replication_key_datatype) if replication_key_value else "NULL"
                   }
 
     update_keys = query_keys.intersection(input_dict.keys())
