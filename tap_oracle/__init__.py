@@ -273,6 +273,7 @@ def produce_column_metadata(connection, database_name, table_info, table_schema,
 
       if row_count is not None:
          metadata.write(mdata, (), 'row-count', row_count)
+
    filter_out_columns = metadata.get(mdata, (), 'filter_out_columns')
    select_columns = metadata.get(mdata, (), 'select_columns')
 
@@ -645,7 +646,9 @@ def main_impl():
                   'common_user': args.config.get('common_user'),
                   'common_password': args.config.get('common_password'),
                   'common_sid': args.config.get('common_sid'),
-                  'common_service_name': args.config.get('common_service_name')}
+                  'common_service_name': args.config.get('common_service_name'),
+                  'filter_out_columns': args.config.get('filter_out_columns'),
+                  'select_columns': args.config.get('select_columns')}
 
    if args.config.get('scn_window_size'):
       log_miner.SCN_WINDOW_SIZE=int(args.config['scn_window_size'])
