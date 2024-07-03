@@ -7,6 +7,11 @@ import dateutil.parser
 import singer
 from singer import metadata
 from tap_oracle.connection_helper import oracledb
+import string
+import logging
+import os
+
+logger = logging.getLogger(__name__)
 
 def should_sync_column(metadata, field_name):
     field_metadata = metadata.get(('properties', field_name), {})
@@ -99,3 +104,28 @@ def prepare_where_clause_arg(val, sql_datatype):
         return "to_timestamp('{}')".format(val)
     else:
         return "'{}'".format(val)
+
+def format_query_file(query_file: str,
+                      escaped_columns: map,
+                      escaped_schema: str,
+                      escaped_table: str,
+                      replication_key_value: str = None
+                      ) -> str:
+    full_query_file = os.path.join("custom_queries", query_file)
+    with open(full_query_file, 'r') as f:
+        query = f.read()
+    formatter = string.Formatter()
+    query_keys = {fname for _, fname, _, _ in formatter.parse(query) if fname}
+    input_dict = {"escaped_columns": ",".join(escaped_columns),
+                  "escaped_schema": escaped_schema,
+                  "escaped_table": escaped_table,
+                  "replication_key_value": replication_key_value if replication_key_value else "NULL"
+                  }
+
+    update_keys = query_keys.intersection(input_dict.keys())
+
+    # join together what we are inputting and what the query-file wants
+    filtered_input_dict = {k: input_dict[k] for k in update_keys}
+    logger.info(filtered_input_dict)
+    return query.format(**filtered_input_dict)
+

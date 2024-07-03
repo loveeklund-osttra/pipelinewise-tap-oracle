@@ -68,24 +68,38 @@ def sync_table(conn_config, stream, state, desired_columns):
       typed_offset_value = f"INTERVAL '{OFFSET_VALUE}' SECOND"
 
    with metrics.record_counter(None) as counter:
-      
+
       counter.tags["schema"] = escaped_schema
       counter.tags["table"] = escaped_table
-      
+      custom_query_file = md.get(()).get("custom_query_file")
       if replication_key_value:
          LOGGER.info(f"Resuming Incremental replication from {replication_key} = {replication_key_value} + {typed_offset_value}")
-         casted_where_clause_arg = common.prepare_where_clause_arg(replication_key_value, replication_key_sql_datatype)
 
-         select_sql      = f"""SELECT {','.join(escaped_columns)}
-                                FROM {escaped_schema}.{escaped_table}
-                               WHERE {replication_key} >= {casted_where_clause_arg} + {typed_offset_value}
-                               ORDER BY {replication_key} ASC
-                                """
+         if custom_query_file:
+             select_sql = common.format_query_file(custom_query_file,
+                                                   escaped_columns,
+                                                   escaped_schema,
+                                                   escaped_table,
+                                                   replication_key_value)
+         else:
+             casted_where_clause_arg = common.prepare_where_clause_arg(
+                 replication_key_value, replication_key_sql_datatype)
+             select_sql = f"""SELECT {','.join(escaped_columns)}
+                                   FROM {escaped_schema}.{escaped_table}
+                                  WHERE {replication_key} >= {casted_where_clause_arg} + {typed_offset_value}
+                                  ORDER BY {replication_key} ASC
+                                   """
       else:
-         select_sql      = f"""SELECT {','.join(escaped_columns)}
-                                FROM {escaped_schema}.{escaped_table}
-                               ORDER BY {replication_key} ASC
-                               """
+          if custom_query_file:
+              select_sql = common.format_query_file(custom_query_file,
+                                                    escaped_columns,
+                                                    escaped_schema,
+                                                    escaped_table)
+          else:
+              select_sql = f"""SELECT {','.join(escaped_columns)}
+                                 FROM {escaped_schema}.{escaped_table}
+                                ORDER BY {replication_key} ASC
+                                """
 
       rows_saved = 0
       LOGGER.info("select %s", select_sql)
