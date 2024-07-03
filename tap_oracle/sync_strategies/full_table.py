@@ -132,10 +132,19 @@ def sync_table(conn_config, stream, state, desired_columns):
       ora_rowscn = singer.get_bookmark(state, stream.tap_stream_id, 'ORA_ROWSCN')
       if not USE_ORA_ROWSCN:
          # Warning there is not restart recovery if the ORA_ROWSCN is ignored.
-         select_sql      = """SELECT {}, NULL as ORA_ROWSCN
-                                FROM {}.{}""".format(','.join(escaped_columns),
-                                           escaped_schema,
-                                           escaped_table)
+         custom_query_file = md.get(()).get("custom_query_file")
+         if custom_query_file:
+             select_sql = common.format_query_file(custom_query_file=custom_query_file,
+                                                   escaped_columns=escaped_columns,
+                                                   escaped_schema=escaped_schema,
+                                                   escaped_table=escaped_table,
+                                                   replication_key_value=None,
+                                                   replication_key_datatype=None)
+         else:
+             select_sql      = """SELECT {}, NULL as ORA_ROWSCN
+                                    FROM {}.{}""".format(','.join(escaped_columns),
+                                               escaped_schema,
+                                               escaped_table)
       elif ora_rowscn:
          LOGGER.info("Resuming Full Table replication %s from ORA_ROWSCN %s", nascent_stream_version, ora_rowscn)
          select_sql      = """SELECT {}, ORA_ROWSCN
