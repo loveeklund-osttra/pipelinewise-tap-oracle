@@ -273,6 +273,16 @@ def produce_column_metadata(connection, database_name, table_info, table_schema,
 
       if row_count is not None:
          metadata.write(mdata, (), 'row-count', row_count)
+   filter_out_columns = metadata.get(mdata, (), 'filter_out_columns')
+   select_columns = metadata.get(mdata, (), 'select_columns')
+
+   if filter_out_columns and select_columns:
+         raise Exception("Cannot specify both filter_out_columns and select_columns")
+   if select_columns:
+      cols = [c for c in cols if c.column_name in select_columns]
+   elif filter_out_columns:
+      cols = [c for c in cols if c.column_name not in filter_out_columns]
+
    for c in cols:
       c_name = c.column_name
       # Write the data_type or "None" when the column has no datatype
