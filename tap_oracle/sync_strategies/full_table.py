@@ -135,6 +135,7 @@ def sync_table(conn_config, stream, state, desired_columns):
          custom_query_file = md.get(()).get("custom_query_file")
          if custom_query_file:
              # add ORA_ROWSCN column as original code expects it
+             escaped_columns = list(escaped_columns)
              escaped_columns.append("NULL as ORA_ROWSCN")
              select_sql = common.format_query_file(query_file=custom_query_file,
                                                    escaped_columns=escaped_columns,
